@@ -44,6 +44,9 @@ public:
         const Entity last_ent = index_to_entity_[last_index];
         index_to_entity_[cur_index] = last_ent;
         entity_to_index_[last_ent] = cur_index;
+
+        index_to_entity_.erase(last_index);
+        entity_to_index_.erase(entity);
     }
 
     T &getData(Entity entity)
