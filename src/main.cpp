@@ -318,6 +318,12 @@ public:
         component_manager_.registerComponent<T>();
     }
 
+    template<class... Comps>
+    void registerComponents()
+    {
+        ComponentsRegistrator<Comps...>::registerComponents(component_manager_);
+    }
+
     template<class T>
     void addComponent(Entity entity, T component)
     {
@@ -354,6 +360,14 @@ public:
         return component_manager_.getComponentType<T>();
     }
 
+    template <class ...Comps>
+    Signature getSignature()
+    {
+        Signature signature;
+        SignatureBuilder<Comps...>::addToSignature(component_manager_, signature);
+        return signature;
+    }
+
     template<class T>
     T *registerSystem()
     {
@@ -365,6 +379,54 @@ public:
     {
         system_manager_.setSignature<T>(signature);
     }
+
+    template<class T, class ...Comps>
+    void setSystemComponents()
+    {
+        setSystemSignature<T>(getSignature<Comps...>());
+    }
+
+private:
+    //////////////////////////////////////////////////
+    template<class... Comps>
+    struct SignatureBuilder;
+
+    template<>
+    struct SignatureBuilder<>
+    {
+        static void addToSignature(const ComponentManager &cm, Signature &signature) {}
+    };
+
+    template<class First, class... Tail>
+    struct SignatureBuilder<First, Tail...>
+    {
+        static void addToSignature(const ComponentManager &cm, Signature &signature)
+        {
+            const ComponentType type = cm.getComponentType<First>();
+            signature.set(type, true);
+            SignatureBuilder<Tail...>::addToSignature(cm, signature);
+        }
+    };
+
+    //////////////////////////////////////////////////
+    template<class... Comps>
+    struct ComponentsRegistrator;
+
+    template<>
+    struct ComponentsRegistrator<>
+    {
+        static void registerComponents(ComponentManager &cm) {}
+    };
+
+    template<class First, class... Tail>
+    struct ComponentsRegistrator<First, Tail...>
+    {
+        static void registerComponents(ComponentManager &cm)
+        {
+            cm.registerComponent<First>();
+            ComponentsRegistrator<Tail...>::registerComponents(cm);
+        }
+    };
 
 private:
     EntityManager entity_manager_;
@@ -415,13 +477,9 @@ int main()
 {
     auto *system = ecs.registerSystem<PhysicsSystem>();
 
-    ecs.registerComponent<Position>();
-    ecs.registerComponent<Mass>();
+    ecs.registerComponents<Position, Mass>();
+    ecs.setSystemComponents<PhysicsSystem, Position, Mass>();
 
-    Signature signature;
-    signature.set(ecs.getComponentType<Position>());
-    signature.set(ecs.getComponentType<Mass>());
-    ecs.setSystemSignature<PhysicsSystem>(signature);
 
 
     for (int i = 0; i < 5; ++i)
