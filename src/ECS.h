@@ -9,9 +9,16 @@
 #include <unordered_set>
 #include <vector>
 
-#define DECLARE_TYPE_INFO(type) \
-public:                    \
-    static inline const char *getTypeStatic() { return #type; }
+
+template<class T>
+struct TypeInfo;
+
+#define DECLARE_TYPE_INFO(type)                      \
+    template<>                                       \
+    struct TypeInfo<type> {                          \
+        static const char *toStr() { return #type; } \
+    }
+
 
 using Entity = int;
 
@@ -189,7 +196,7 @@ private:
     template<class T>
     static inline const char *get_component_type()
     {
-        return T::getTypeStatic();
+        return TypeInfo<T>::toStr();
     }
 
     template<class T>
@@ -287,7 +294,7 @@ private:
     template<class T>
     static inline const char *get_system_type()
     {
-        return T::getTypeStatic();
+        return TypeInfo<T>::toStr();
     }
 
 private:

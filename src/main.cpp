@@ -5,25 +5,21 @@
 ECS ecs;
 
 struct Position {
-    DECLARE_TYPE_INFO(Position);
-
-public:
     float x{0.0f};
     float y{0.0f};
-    float z{0.0f};
+};
+
+struct Speed {
+    float x{0.0f};
+    float y{0.0f};
 };
 
 struct Mass {
-    DECLARE_TYPE_INFO(Mass);
-
-public:
     float mass{1.0f};
 };
 
 class PhysicsSystem : public System
 {
-    DECLARE_TYPE_INFO(PhysicsSystem);
-
 public:
     void update()
     {
@@ -32,12 +28,16 @@ public:
             auto &pos = ecs.getComponent<Position>(entity);
             auto &mass = ecs.getComponent<Mass>(entity);
 
-            std::cout << "pos: " << pos.x << " " << pos.y << " " << pos.z << " | mass: " << mass.mass << std::endl;
+            std::cout << "pos: " << pos.x << " " << pos.y  << " | mass: " << mass.mass << std::endl;
             pos.x += 1;
             mass.mass -= 0.1;
         }
     }
 };
+
+DECLARE_TYPE_INFO(Position);
+DECLARE_TYPE_INFO(Mass);
+DECLARE_TYPE_INFO(PhysicsSystem);
 
 int main()
 {
@@ -52,7 +52,7 @@ int main()
     {
         const Entity ent = ecs.createEntity();
 
-        Position pos = {(float) i, (float) i * 10, (float) i * 100};
+        Position pos = {(float) i, (float) i * 10};
         ecs.addComponent<Position>(ent, pos);
 
         Mass mass = {(float) i};
@@ -62,7 +62,7 @@ int main()
     for (int i = 0; i < 5; ++i)
     {
         const Entity ent = ecs.createEntity();
-        Position pos = {(float) i, (float) i * 10, (float) i * 100};
+        Position pos = {(float) i, (float) i * 10};
         ecs.addComponent<Position>(ent, pos);
     }
 
