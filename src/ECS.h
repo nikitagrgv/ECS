@@ -221,7 +221,7 @@ private:
 class System
 {
 public:
-    ~System() = default;
+    virtual ~System() = default;
 
     void addEntity(Entity entity)
     {
@@ -254,6 +254,31 @@ public:
         auto it = systems_.emplace(type, std::make_unique<T>());
         system_signatures_.emplace(type, Signature{});
         return static_cast<T *>(it.first->second.get());
+    }
+
+    template<class T>
+    [[nodiscard]] T *getSystem()
+    {
+        const char *type = get_system_type<T>();
+        auto it = systems_.find(type);
+        assert(it != systems_.end());
+        assert(dynamic_cast<T *>(it->second.get()));
+        return static_cast<T *>(it->second.get());
+    }
+
+    template<class T>
+    void removeSystem()
+    {
+        const char *type = get_system_type<T>();
+
+        auto it = systems_.find(type);
+        assert(it != systems_.end());
+        assert(dynamic_cast<T *>(it->second.get()));
+        systems_.erase(it);
+
+        auto it2 = system_signatures_.find(type);
+        assert(it2 != system_signatures_.end());
+        system_signatures_.erase(it2);
     }
 
     template<class T>
@@ -379,6 +404,12 @@ public:
     T *registerSystem()
     {
         return system_manager_.registerSystem<T>();
+    }
+
+    template<class T>
+    [[nodiscard]] T *getSystem()
+    {
+        return system_manager_.getSystem<T>();
     }
 
     template<class T>

@@ -41,13 +41,12 @@ DECLARE_TYPE_INFO(PhysicsSystem);
 
 int main()
 {
-    auto *system = ecs.registerSystem<PhysicsSystem>();
-
+    ecs.registerSystem<PhysicsSystem>();
     ecs.registerComponents<Position, Mass>();
     ecs.setSystemComponents<PhysicsSystem, Position, Mass>();
 
 
-
+    auto *system = ecs.getSystem<PhysicsSystem>();
     for (int i = 0; i < 5; ++i)
     {
         const Entity ent = ecs.createEntity();
