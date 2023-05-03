@@ -9,7 +9,7 @@ set(SFML_STATIC_LIBRARIES TRUE)
 add_definitions(-DSFML_STATIC)
 find_package(SFML COMPONENTS graphics window system REQUIRED)
 
-add_executable(ecs src/main.cpp src/ECS.h)
+add_executable(ecs src/main.cpp src/ECS.h src/MathUtils.h)
 
 target_link_libraries(ecs sfml-graphics sfml-system sfml-window)
 

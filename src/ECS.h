@@ -13,10 +13,14 @@
 template<class T>
 struct TypeInfo;
 
-#define DECLARE_TYPE_INFO(type)                      \
-    template<>                                       \
-    struct TypeInfo<type> {                          \
-        static const char *toStr() { return #type; } \
+#define DECLARE_TYPE_INFO(type)                                                                    \
+    template<>                                                                                     \
+    struct TypeInfo<type>                                                                          \
+    {                                                                                              \
+        static const char *toStr()                                                                 \
+        {                                                                                          \
+            return #type;                                                                          \
+        }                                                                                          \
     }
 
 
@@ -186,7 +190,7 @@ public:
 
     void entityDestroyed(Entity entity)
     {
-        for (const auto &it: component_arrays_)
+        for (const auto &it : component_arrays_)
         {
             it.second->entityDestroyed(entity);
         }
@@ -223,20 +227,11 @@ class System
 public:
     virtual ~System() = default;
 
-    void addEntity(Entity entity)
-    {
-        entities_.emplace(entity);
-    }
+    void addEntity(Entity entity) { entities_.emplace(entity); }
 
-    void removeEntity(Entity entity)
-    {
-        entities_.erase(entity);
-    }
+    void removeEntity(Entity entity) { entities_.erase(entity); }
 
-    void entityDestroyed(Entity entity)
-    {
-        removeEntity(entity);
-    }
+    void entityDestroyed(Entity entity) { removeEntity(entity); }
 
 protected:
     std::set<Entity> entities_;
@@ -292,7 +287,7 @@ public:
 
     void entityDestroyed(Entity entity)
     {
-        for (const auto &it: systems_)
+        for (const auto &it : systems_)
         {
             it.second->entityDestroyed(entity);
         }
@@ -300,7 +295,7 @@ public:
 
     void entitySignatureChanged(Entity entity, Signature entity_signature)
     {
-        for (const auto &it: systems_)
+        for (const auto &it : systems_)
         {
             const auto &system = it.second;
             const auto &system_signature = system_signatures_[it.first];
@@ -308,7 +303,8 @@ public:
             if ((entity_signature & system_signature) == system_signature)
             {
                 system->addEntity(entity);
-            } else
+            }
+            else
             {
                 system->removeEntity(entity);
             }
@@ -332,10 +328,7 @@ private:
 class ECS
 {
 public:
-    [[nodiscard]] Entity createEntity()
-    {
-        return entity_manager_.createEntity();
-    }
+    [[nodiscard]] Entity createEntity() { return entity_manager_.createEntity(); }
 
     void destroyEntity(Entity entity)
     {
@@ -392,7 +385,7 @@ public:
         return component_manager_.getComponentType<T>();
     }
 
-    template <class ...Comps>
+    template<class... Comps>
     Signature getSignature()
     {
         Signature signature;
@@ -418,7 +411,7 @@ public:
         system_manager_.setSignature<T>(signature);
     }
 
-    template<class T, class ...Comps>
+    template<class T, class... Comps>
     void setSystemComponents()
     {
         setSystemSignature<T>(getSignature<Comps...>());
