@@ -38,4 +38,10 @@ inline sf::Vector2f getBoundCenter(T shape)
     return {bounds.width / 2, bounds.height / 2};
 }
 
+template<class T>
+inline auto multiply(T vec0, T vec1)
+{
+    return T{vec0.x * vec1.x, vec0.y * vec1.y};
+}
+
 } // namespace Math

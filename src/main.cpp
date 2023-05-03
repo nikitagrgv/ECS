@@ -26,7 +26,7 @@ struct Mass
 class PhysicsSystem : public System
 {
 public:
-    static constexpr double GRAVITY = 100;
+    static constexpr double GRAVITY = 2000;
 
     void update(double dt)
     {
@@ -49,7 +49,7 @@ public:
 
                 const sf::Vector2<double> dir_from_0_to_1 = pos_1 - pos_0;
                 const double distance = Math::length(dir_from_0_to_1);
-                const double force_module = GRAVITY * mass_0 * mass_1 / distance / distance;
+                const double force_module = GRAVITY * mass_0 * mass_1 / distance / distance / distance;
                 sf::Vector2<double> force = dir_from_0_to_1 * force_module;
                 speed_0 += force * dt / mass_0;
             }
@@ -69,20 +69,42 @@ class RenderSystem
     : public System
     , public sf::Drawable
 {
+public:
+    void updateTrails()
+    {
+        for (const Entity &entity : entities_)
+        {
+            const auto &pos = ecs.getComponent<Position>(entity).pos;
+            entity_trails_[entity].emplace_back((sf::Vector2f)pos, sf::Color::Cyan);
+        }
+    }
+
     void draw(sf::RenderTarget &target, sf::RenderStates states) const override
     {
         for (const Entity &entity : entities_)
         {
+            // draw trail
+            auto it = entity_trails_.find(entity);
+            if (it != entity_trails_.end())
+            {
+                const auto &trail = it->second;
+                target.draw(trail.data(), trail.size(), sf::LineStrip, states);
+            }
+
+            // draw object
             sf::CircleShape shape{};
-            const auto &pos = ecs.getComponent<Position>(entity);
-            const auto &mass = ecs.getComponent<Mass>(entity);
-            shape.setPosition((sf::Vector2f)pos.pos);
-            const float radius = std::sqrt((float)mass.mass);
+            const auto &pos = ecs.getComponent<Position>(entity).pos;
+            const auto &mass = ecs.getComponent<Mass>(entity).mass;
+            shape.setPosition((sf::Vector2f)pos);
+            const float radius = std::sqrt((float)mass);
             shape.setRadius(radius);
             shape.setOrigin(Math::getBoundCenter(shape));
             target.draw(shape, states);
         }
     }
+
+private:
+    std::unordered_map<Entity, std::vector<sf::Vertex>> entity_trails_;
 };
 
 DECLARE_TYPE_INFO(Position);
@@ -115,11 +137,15 @@ int main()
         ecs.addComponent<Mass>(ent, Mass{mass});
     };
 
-    create_ent({}, {}, 170);
-    create_ent({90, 0}, {0, -60}, 15);
-    create_ent({-120, 0}, {0, 90}, 2);
+//    create_ent({}, {}, 170);
+//    create_ent({90, 0}, {0, -60}, 15);
+//    create_ent({-120, 0}, {0, 90}, 2);
 
-
+    create_ent({}, {}, 500);
+    create_ent({100, 0}, {0, -120}, 3);
+    create_ent({-50, 0}, {40, 150}, 1);
+    create_ent({50, 0}, {40, 0150}, 1);
+//    create_ent({1550, 0}, {0, -700}, 3);
 
 
     std::vector<sf::Vertex> axis;
@@ -158,8 +184,8 @@ int main()
             camera_move_dir.x -= 1;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
             camera_move_dir.x += 1;
-        constexpr float CAMERA_MOVE_SPEED = 4.0f;
-        view.move(camera_move_dir * CAMERA_MOVE_SPEED);
+        constexpr float CAMERA_MOVE_SPEED = 0.008f;
+        view.move(Math::multiply(camera_move_dir, (sf::Vector2f)view.getSize()) * CAMERA_MOVE_SPEED);
 
         constexpr float ZOOM_FACTOR = 0.04;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
@@ -179,6 +205,7 @@ int main()
             for (int i = 0; i < REPEATS; ++i)
             {
                 physic_sys->update(DELTA_TIME);
+                render_sys->updateTrails();
             }
         }
 
